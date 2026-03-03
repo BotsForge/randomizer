@@ -21,7 +21,7 @@
       <td>{{ to_msk(u.created_at).strftime('%Y-%m-%d %H:%M') if u.created_at }}</td>
       <td>{{ event_counts.get(u.id, 0) }}</td>
       <td>{{ part_counts.get(u.id, 0) }}</td>
-      <td><a href="/admin/users/{{ u.id }}">Открыть</a></td>
+      <td><a href="{{ url_for('admin_user_detail', uid=u.id) }}">Открыть</a></td>
     </tr>
   {% endfor %}
   </tbody>

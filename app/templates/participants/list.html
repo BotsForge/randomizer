@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Участники</h1>
-<a href="/participants/new" class="btn">+ Новый участник</a>
+<a href="{{ url_for('new_participant') }}" class="btn">+ Новый участник</a>
 <table class="table">
   <thead><tr><th>Имя</th><th>Вес по умолчанию</th><th>Изображение</th><th></th></tr></thead>
   <tbody>
@@ -10,11 +10,11 @@
         <td>{{ p.name }}</td>
         <td>{{ p.default_weight }}</td>
         <td>
-          <img src="{{ p.image_url or '/static/img/avatar-placeholder.png' }}" alt="" width="48" style="object-fit:cover;border-radius:4px;">
+          <img src="{{ p.image_url or url_for('static', path='img/avatar-placeholder.png') }}" alt="" width="48" style="object-fit:cover;border-radius:4px;">
         </td>
         <td>
-          <a href="/participants/{{ p.id }}">Редактировать</a>
-          <form method="post" action="/participants/{{ p.id }}/delete" style="display:inline" onsubmit="return confirm('Удалить участника?')">
+          <a href="{{ url_for('edit_participant', pid=p.id) }}">Редактировать</a>
+          <form method="post" action="{{ url_for('delete_participant', pid=p.id) }}" style="display:inline" onsubmit="return confirm('Удалить участника?')">
             <button type="submit">Удалить</button>
           </form>
         </td>

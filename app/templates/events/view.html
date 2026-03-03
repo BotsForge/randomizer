@@ -5,11 +5,11 @@
   <p><b>Описание:</b> {{ event.description }}</p>
   <p><b>Тип:</b> {{ event.event_type|event_type_label }}</p>
   <p><b>Старт:</b> {{ to_msk(event.starts_at).strftime('%Y-%m-%d %H:%M') if event.starts_at }}</p>
-  <p><b>Slug:</b> <a href="/event/{{ event.slug }}" target="_blank">{{ event.slug }}</a></p>
+  <p><b>Slug:</b> <a href="{{ url_for('public_event', slug=event.slug) }}" target="_blank">{{ event.slug }}</a></p>
   {% if event.prize %}
     <div class="card">
       <h3>Приз: {{ event.prize.title }}</h3>
-      {% set prize_img = (event.prize.image_url if event.prize else None) or '/static/img/prize-placeholder.png' %}
+      {% set prize_img = (event.prize.image_url if event.prize else None) or url_for('static', path='img/prize-placeholder.png') %}
       <img src="{{ prize_img }}" alt="" style="max-width:240px">
     </div>
   {% endif %}
@@ -33,5 +33,5 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="/static/js/event.js"></script>
+<script src="{{ url_for('static', path='js/event.js') }}"></script>
 {% endblock %}

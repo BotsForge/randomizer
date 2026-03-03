@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Админ: Пользователь — {{ u.username }}</h1>
-<p><a href="/admin/users">← Назад к списку пользователей</a></p>
+<p><a href="{{ url_for('admin_users') }}">← Назад к списку пользователей</a></p>
 <div class="grid two">
   <section>
     <h2>События пользователя</h2>
@@ -32,7 +32,7 @@
           <td>{{ (e.participants|length) if e.participants else 0 }}</td>
           <td>{{ e.slug }}</td>
           <td>
-            {% if e.slug %}<a href="/event/{{ e.slug }}" target="_blank">Открыть</a>{% endif %}
+            {% if e.slug %}<a href="{{ url_for('public_event', slug=e.slug) }}" target="_blank">Открыть</a>{% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -64,7 +64,7 @@
             {% if p.image_url %}
               <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
             {% else %}
-              <img src="/static/img/avatar-placeholder.png" alt="no avatar" style="width:40px;height:40px;opacity:.5;">
+              <img src="{{ url_for('static', path='img/avatar-placeholder.png') }}" alt="no avatar" style="width:40px;height:40px;opacity:.5;">
             {% endif %}
           </td>
         </tr>

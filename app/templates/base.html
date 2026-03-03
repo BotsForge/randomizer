@@ -9,24 +9,24 @@
   <title>{{ title or "Smith's Randomizer" }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/static/css/matrix.css">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/matrix.css') }}">
 </head>
 <body>
   <div class="matrix-bg"></div>
   <header class="nav">
     <div class="container">
-      <a class="brand" href="/">Smith's Randomizer</a>
+      <a class="brand" href="{{ url_for('index') }}">Smith's Randomizer</a>
       <nav>
         {% if user %}
-          <a href="/participants/">Участники</a>
-          <a href="/events/">События</a>
+          <a href="{{ url_for('list_participants') }}">Участники</a>
+          <a href="{{ url_for('list_events') }}">События</a>
           {% if user and SUPER_ADMIN_USERNAME and user.username|lower == SUPER_ADMIN_USERNAME|lower %}
-            <a href="/admin/users">Админ</a>
+            <a href="{{ url_for('admin_users') }}">Админ</a>
           {% endif %}
-          <a href="/logout">Выход ({{ user.username }})</a>
+          <a href="{{ url_for('logout') }}">Выход ({{ user.username }})</a>
         {% else %}
-          <a href="/login">Вход</a>
-          <a href="/register">Регистрация</a>
+          <a href="{{ url_for('login_form') }}">Вход</a>
+          <a href="{{ url_for('register_form') }}">Регистрация</a>
         {% endif %}
       </nav>
     </div>
