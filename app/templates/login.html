@@ -6,5 +6,5 @@
   <label>Пароль <input type="password" name="password" required></label>
   <button type="submit">Войти</button>
 </form>
-<p>Нет аккаунта? <a href="/register">Зарегистрируйтесь</a></p>
+<p>Нет аккаунта? <a href="{{ url_for('register_form') }}">Зарегистрируйтесь</a></p>
 {% endblock %}
