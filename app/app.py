@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 import contextlib
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -47,6 +48,14 @@ app = FastAPI(
     docs_url="/docs" if IS_DEV else None,
     redoc_url="/redoc" if IS_DEV else None,
     openapi_url="/openapi.json" if IS_DEV else None,
+)
+
+BASE_DIR = Path(__file__).resolve().parent
+
+app.mount(
+    "/static",
+    StaticFiles(directory=BASE_DIR / "static"),
+    name="static",
 )
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
