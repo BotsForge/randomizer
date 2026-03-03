@@ -30,7 +30,7 @@ async def register(request: Request, username: str = Form(...), password: str = 
     await session.refresh(user)
     request.session["uid"] = user.id
     request.session["uname"] = user.username
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(request.url_for('index'), status_code=303)
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -46,10 +46,10 @@ async def login(request: Request, username: str = Form(...), password: str = For
         return request.app.templates.TemplateResponse("login.html", {"request": request, "error": "Неверные данные"})
     request.session["uid"] = user.id
     request.session["uname"] = user.username
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(request.url_for('index'), status_code=303)
 
 
 @router.get("/logout")
 async def logout(request: Request):
     request.session.clear()
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(request.url_for('index'), status_code=303)

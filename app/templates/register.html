@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Регистрация</h1>
-<form method="post" action="/register" class="form">
+<form method="post" action="{{ url_for('register') }}" class="form">
   <label>Логин <input type="text" name="username" required></label>
   <label>Пароль <input type="password" name="password" required></label>
   <button type="submit">Создать аккаунт</button>
