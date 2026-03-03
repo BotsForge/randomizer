@@ -256,9 +256,6 @@
       const pid = msg.participant_id;
       const isElim = !!msg.eliminated;
       const isReverse = !!(state && state.event && state.event.type === 'reverse');
-      if(typeof msg.eliminated === 'boolean'){
-        addStage(new Date().toISOString(), pid, isElim);
-      }
       const endAt = msg.finished_at || null;
 
       // Decide visual target for the wheel
@@ -277,7 +274,11 @@
         await highlightPick(visualTargetId);
       }
 
-      // After spin (or skipped)
+      // After spin (or skipped): now it is safe to write stage history
+      if(typeof msg.eliminated === 'boolean'){
+        addStage(new Date().toISOString(), pid, isElim);
+      }
+
       if(isElim){
         currentActiveIds = currentActiveIds.filter(id=>id!==pid);
         if(!currentOutIds.includes(pid)) currentOutIds.push(pid);
