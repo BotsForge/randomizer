@@ -41,7 +41,7 @@
         <input type="file" name="prize_image_file" accept="image/*">
       </label>
       <div style="margin-top:6px">
-        <img src="{{ (event.prize.image_url if event and event.prize else None) or '/static/img/prize-placeholder.png' }}" alt="prize" style="max-width:160px; max-height:160px;">
+        <img src="{{ with_root(request, event.prize.image_url) if event and event.prize and event.prize.image_url else url_for('static', path='img/prize-placeholder.png') }}" alt="prize" style="max-width:160px; max-height:160px;">
       </div>
       <div style="color:#666; font-size:0.9em;">Будет автоматически сжато до 500 пикселей по большей стороне и оптимизировано по качеству (&lt; 1 МБ).</div>
     </div>
@@ -60,7 +60,7 @@
             <tr>
               <td><input type="checkbox" name="participant_ids" value="{{ p.id }}" {% if link %}checked{% endif %}></td>
               <td>
-                <img src="{{ p.image_url or '/static/img/avatar-placeholder.png' }}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+                <img src="{{ with_root(request, p.image_url) or url_for('static', path='img/avatar-placeholder.png') }}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
               </td>
               <td>{{ p.name }}</td>
               <td>{{ p.default_weight }}</td>

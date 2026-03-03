@@ -451,11 +451,20 @@ async def view_event_by_slug(request: Request, slug: str, session: AsyncSession 
         parts = (await session.exec(select(Participant).where(Participant.id.in_(part_ids)))).all()
     # build weights map
     links_map = {l.participant_id: (l.weight if l.weight and l.weight > 0 else None) for l in link_list}
+    rp = request.scope.get("root_path") or ""
+    def _pref(u: str | None):
+        if not u:
+            return u
+        if u.startswith("http://") or u.startswith("https://") or u.startswith("//"):
+            return u
+        if u.startswith("/static/") and rp:
+            return f"{rp}{u}"
+        return u
     parts_full = [
         {
             "id": p.id,
             "name": p.name,
-            "image_url": p.image_url,
+            "image_url": _pref(p.image_url),
             "weight": (links_map.get(p.id) or p.default_weight),
         } for p in parts
     ]

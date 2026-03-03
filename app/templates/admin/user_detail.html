@@ -62,7 +62,7 @@
           <td>{{ p.default_weight }}</td>
           <td>
             {% if p.image_url %}
-              <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+              <img src="{{ with_root(request, p.image_url) }}" alt="{{ p.name }}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
             {% else %}
               <img src="{{ url_for('static', path='img/avatar-placeholder.png') }}" alt="no avatar" style="width:40px;height:40px;opacity:.5;">
             {% endif %}

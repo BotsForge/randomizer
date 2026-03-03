@@ -15,10 +15,10 @@
     </label>
     <p>Или укажите URL (если нужен внешний хостинг):</p>
     <label>URL изображения (опционально)
-      <input type="text" name="image_url" value="{{ participant.image_url if participant }}">
+      <input type="text" name="image_url" value="{{ (participant.image_url or '') if participant else '' }}">
     </label>
     <div style="margin-top:8px">
-      <img src="{{ (participant.image_url if participant else None) or url_for('static', path='img/avatar-placeholder.png') }}" alt="prev" style="max-width:100px; max-height:100px;">
+      <img src="{{ with_root(request, participant.image_url) if participant and participant.image_url else url_for('static', path='img/avatar-placeholder.png') }}" alt="prev" style="max-width:100px; max-height:100px;">
     </div>
   </div>
   <button type="submit">Сохранить</button>

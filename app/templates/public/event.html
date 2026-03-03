@@ -9,7 +9,7 @@
   {% if event.prize %}
     <div class="card">
       <h3>Приз: {{ event.prize.title }}</h3>
-      {% set prize_img = (event.prize.image_url if event.prize else None) or url_for('static', path='img/prize-placeholder.png') %}
+      {% set prize_img = with_root(request, event.prize.image_url) if event.prize and event.prize.image_url else url_for('static', path='img/prize-placeholder.png') %}
       <img src="{{ prize_img }}" alt="" style="max-width:240px">
     </div>
   {% endif %}

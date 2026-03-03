@@ -103,6 +103,26 @@ def _event_type_label(value: str) -> str:
 # Jinja filters
 templates.env.filters["event_type_label"] = _event_type_label
 
+# Helper to prefix app root_path for local static URLs stored in DB
+
+def with_root(request: Request, url: str | None):
+    try:
+        if not url:
+            return url
+        # already absolute external URL
+        if url.startswith("http://") or url.startswith("https://") or url.startswith("//"):
+            return url
+        # prefix root_path for app-mounted static
+        if url.startswith("/static/"):
+            rp = request.scope.get("root_path") or ""
+            return f"{rp}{url}" if rp else url
+        return url
+    except Exception:
+        return url
+
+# Expose to Jinja
+templates.env.globals["with_root"] = with_root
+
 # Routers
 app.include_router(auth_router.router)
 app.include_router(participants_router.router, prefix="/participants", tags=["participants"])
