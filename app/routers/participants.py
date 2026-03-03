@@ -75,14 +75,14 @@ async def create_participant(request: Request,
     p = Participant(name=name.strip(), default_weight=max(1, int(default_weight or 1)), image_url=final_url, user_id=user.id)
     session.add(p)
     await session.commit()
-    return RedirectResponse("/participants/", status_code=303)
+    return RedirectResponse(request.url_for("list_participants"), status_code=303)
 
 
 @router.get("/{pid}", response_class=HTMLResponse)
 async def edit_participant(request: Request, pid: int, session: AsyncSession = Depends(get_session), user=Depends(get_current_user)):
     p = await session.get(Participant, pid)
     if not p or p.user_id != user.id:
-        return RedirectResponse("/participants/", status_code=303)
+        return RedirectResponse(request.url_for("list_participants"), status_code=303)
     return request.app.templates.TemplateResponse("participants/form.html", {"request": request, "user": user, "participant": p})
 
 
@@ -155,7 +155,7 @@ async def update_participant(request: Request,
     p.default_weight = max(1, int(default_weight or 1))
     p.image_url = final_url
     await session.commit()
-    return RedirectResponse("/participants/", status_code=303)
+    return RedirectResponse(request.url_for("list_participants"), status_code=303)
 
 
 @router.post("/{pid}/delete")
@@ -173,4 +173,4 @@ async def delete_participant(request: Request, pid: int, session: AsyncSession =
                 pass
         await session.delete(p)
         await session.commit()
-    return RedirectResponse("/participants/", status_code=303)
+    return RedirectResponse(request.url_for("list_participants"), status_code=303)

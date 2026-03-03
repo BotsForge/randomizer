@@ -111,17 +111,17 @@ app.include_router(admin_router.router, prefix="/admin", tags=["admin"])
 app.include_router(public_router.router, tags=["public"])
 
 
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    print("---- REQUEST ----")
-    print("url:", request.url)
-    print("base_url:", request.base_url)
-    print("root_path:", request.scope.get("root_path"))
-    print("path:", request.scope.get("path"))
-    print("raw_path:", request.scope.get("raw_path"))
-    print("-----------------")
-    response = await call_next(request)
-    return response
+# @app.middleware("http")
+# async def log_requests(request: Request, call_next):
+#     print("---- REQUEST ----")
+#     print("url:", request.url)
+#     print("base_url:", request.base_url)
+#     print("root_path:", request.scope.get("root_path"))
+#     print("path:", request.scope.get("path"))
+#     print("raw_path:", request.scope.get("raw_path"))
+#     print("-----------------")
+#     response = await call_next(request)
+#     return response
 
 
 @app.get("/", response_class=HTMLResponse)
