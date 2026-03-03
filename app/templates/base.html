@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', path='css/matrix.css') }}">
 </head>
-<body>
+<body data-root-path="{{ request.scope.get('root_path') or '' }}">
   <div class="matrix-bg"></div>
   <header class="nav">
     <div class="container">

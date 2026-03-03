@@ -9,6 +9,7 @@
   const winnerEl = document.getElementById('winner');
   const stagesWrap = document.getElementById('stages');
   const stagesList = document.getElementById('stages-list');
+  const ROOT = (document.body && document.body.dataset && document.body.dataset.rootPath) || '';
 
   let state = null; // will hold API state
   let participantsById = {}; // id -> {id,name,image_url,weight}
@@ -25,7 +26,7 @@
   let currentIndex = 0; // current top index (0 at initial)
 
   function cardHtml(p){
-    const src = p.image_url || '/static/img/avatar-placeholder.png';
+    const src = p.image_url || (ROOT + '/static/img/avatar-placeholder.png');
     const img = `<img src="${src}" alt="${p.name}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;margin-right:8px;">`;
     return `<div class="row" style="display:flex;align-items:center;margin:4px 0;">
       ${img}
@@ -44,7 +45,7 @@
 
   function itemHtmlById(id){
     const p = participantsById[id];
-    const src = (p && p.image_url) ? p.image_url : '/static/img/avatar-placeholder.png';
+    const src = (p && p.image_url) ? p.image_url : (ROOT + '/static/img/avatar-placeholder.png');
     const name = p ? p.name : (id ? ('#'+id) : '—');
     const meta = p ? `вес: ${p.weight}` : '';
     return `<div class="item"><img src="${src}" alt="${name}"><div><div class="name">${name}</div>${meta? `<div class="meta">${meta}</div>`:''}</div></div>`;
@@ -191,7 +192,7 @@
   async function init(){
     // fetch initial state
     try{
-      const res = await fetch(`/api/events/${eid}/state`);
+      const res = await fetch(`${ROOT}/api/events/${eid}/state`);
       if(!res.ok) throw new Error('failed to load state');
       state = await res.json();
     }catch(e){ console.error(e); }
@@ -235,7 +236,7 @@
   init();
 
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${proto}://${location.host}/ws/events/${eid}`);
+  const ws = new WebSocket(`${proto}://${location.host}${ROOT}/ws/events/${eid}`);
   ws.onopen = ()=>{
     setInterval(()=>{ try{ ws.send('ping'); }catch(e){} }, 15000);
   };
