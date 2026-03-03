@@ -6,5 +6,5 @@
   <label>Пароль <input type="password" name="password" required></label>
   <button type="submit">Создать аккаунт</button>
 </form>
-<p>Уже есть аккаунт? <a href="/login">Войдите</a></p>
+<p>Уже есть аккаунт? <a href="{{ url_for('login_form') }}">Войдите</a></p>
 {% endblock %}
