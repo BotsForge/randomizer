@@ -97,7 +97,7 @@ async def update_participant(request: Request,
                              user=Depends(get_current_user)):
     p = await session.get(Participant, pid)
     if not p or p.user_id != user.id:
-        return RedirectResponse("/participants/", status_code=303)
+        return RedirectResponse(request.url_for("list_participants"), status_code=303)
 
     error = None
     final_url = p.image_url

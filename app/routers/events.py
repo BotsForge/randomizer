@@ -192,7 +192,7 @@ async def create_event(request: Request,
         session.add(link)
 
     await session.commit()
-    return RedirectResponse("/events/", status_code=303)
+    return RedirectResponse(request.url_for('list_events'), status_code=303)
 
 
 @router.get("/check-slug")
@@ -217,7 +217,7 @@ async def edit_event(request: Request, eid: int, session: AsyncSession = Depends
     )
     ev = res.first()
     if not ev or ev.user_id != user.id:
-        return RedirectResponse("/events/", status_code=303)
+        return RedirectResponse(request.url_for('list_events'), status_code=303)
     parts = (await session.exec(select(Participant).where(Participant.user_id == user.id).order_by(Participant.name))).all()
     print(ev)
     print(ev.prize)
@@ -249,10 +249,10 @@ async def update_event(request: Request,
         .where(Event.id == eid)
     )).first()
     if not ev or ev.user_id != user.id:
-        return RedirectResponse("/events/", status_code=303)
+        return RedirectResponse(request.url_for('list_events'), status_code=303)
     if as_utc(ev.starts_at) <= now_utc():
         # cannot edit started/ongoing
-        return RedirectResponse(f"/events/{eid}", status_code=303)
+        return RedirectResponse(request.url_for('list_events', eid=eid), status_code=303)
     # validate slug format
     if not re.fullmatch(r"^[A-Za-z0-9_-]+$", (slug or "").strip()):
         ev_full = (await session.exec(
@@ -393,7 +393,7 @@ async def update_event(request: Request,
                 w = None
         session.add(EventParticipant(event_id=ev.id, participant_id=int(pid), weight=w))
     await session.commit()
-    return RedirectResponse("/events/", status_code=303)
+    return RedirectResponse(request.url_for('list_events'), status_code=303)
 
 
 @router.post("/{eid}/delete")
@@ -426,7 +426,7 @@ async def delete_event(request: Request, eid: int, session: AsyncSession = Depen
                     os.remove(old_path)
             except Exception:
                 pass
-    return RedirectResponse("/events/", status_code=303)
+    return RedirectResponse(request.url_for('list_events'), status_code=303)
 
 
 @router.get("/view/{slug}", response_class=HTMLResponse)
@@ -441,7 +441,7 @@ async def view_event_by_slug(request: Request, slug: str, session: AsyncSession 
     )
     ev = res.first()
     if not ev:
-        return RedirectResponse("/events/", status_code=303)
+        return RedirectResponse(request.url_for('list_events'), status_code=303)
     # participants of event
     links = await session.exec(select(EventParticipant).where(EventParticipant.event_id == ev.id))
     link_list = links.all()

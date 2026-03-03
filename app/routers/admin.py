@@ -40,7 +40,7 @@ async def admin_user_detail(request: Request, uid: int, session: AsyncSession = 
     ensure_admin(user)
     u = await session.get(User, uid)
     if not u:
-        return RedirectResponse("/admin/users", status_code=303)
+        return RedirectResponse(request.url_for("admin_users"), status_code=303)
     events = (await session.exec(
         select(Event)
         .options(selectinload(Event.prize), selectinload(Event.participants))
