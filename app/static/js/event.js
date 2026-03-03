@@ -242,6 +242,74 @@
   ws.onopen = ()=>{
     setInterval(()=>{ try{ ws.send('ping'); }catch(e){} }, 15000);
   };
+  // Queue to serialize pick messages to avoid races between elimination and final winner
+  let pickQueue = [];
+  let processingPick = false;
+
+  async function processNextPick(){
+    if(isFinishedClient){ pickQueue = []; processingPick = false; return; }
+    const msg = pickQueue.shift();
+    if(!msg){ processingPick = false; return; }
+    processingPick = true;
+
+    try{
+      const pid = msg.participant_id;
+      const isElim = !!msg.eliminated;
+      const isReverse = !!(state && state.event && state.event.type === 'reverse');
+      if(typeof msg.eliminated === 'boolean'){
+        addStage(new Date().toISOString(), pid, isElim);
+      }
+      const endAt = msg.finished_at || null;
+
+      // Decide visual target for the wheel
+      let skipSpin = false;
+      let visualTargetId = pid;
+      if(isReverse){
+        if(isElim){
+          visualTargetId = pid; // point to eliminated participant
+        } else if(msg.final){
+          // final winner message in reverse: do not spin again
+          skipSpin = true;
+        }
+      }
+
+      if(!skipSpin){
+        await highlightPick(visualTargetId);
+      }
+
+      // After spin (or skipped)
+      if(isElim){
+        currentActiveIds = currentActiveIds.filter(id=>id!==pid);
+        if(!currentOutIds.includes(pid)) currentOutIds.push(pid);
+        renderParticipants(currentActiveIds, currentOutIds);
+      }
+      if(msg.final){
+        const endAt2 = endAt || new Date().toISOString();
+        timerEl.textContent = `Событие завершено${endAt2? ' ('+ new Date(endAt2).toLocaleString() +')' : ''}`;
+        if(wheel) wheel.style.display = 'none';
+        isFinishedClient = true;
+        // Determine winner
+        let winnerId = pid;
+        if(isReverse){
+          if(isElim){
+            if(currentActiveIds.length === 1) winnerId = currentActiveIds[0];
+          } else {
+            winnerId = pid;
+          }
+        }
+        showWinner(winnerId, endAt2);
+      }
+    }catch(e){ console.error(e); }
+    finally{
+      if(!isFinishedClient){
+        // continue with next pick in queue
+        if(pickQueue.length > 0) await processNextPick(); else processingPick = false;
+      } else {
+        pickQueue = []; processingPick = false;
+      }
+    }
+  }
+
   ws.onmessage = (ev)=>{
     try{
       if(isFinishedClient) return; // ignore any messages after final handled
@@ -256,58 +324,9 @@
         if(stripEl){ stripEl.style.transition = 'none'; }
         shortCountdown(5, 'Старт через', 'Выбор...');
       } else if(msg.type === 'pick'){
-        const pid = msg.participant_id;
-        const isElim = !!msg.eliminated;
-        const isReverse = !!(state && state.event && state.event.type === 'reverse');
-        if(typeof msg.eliminated === 'boolean'){
-          addStage(new Date().toISOString(), pid, isElim);
-        }
-        const endAt = msg.finished_at || null;
-
-        // Decide visual target for the wheel
-        let skipSpin = false;
-        let visualTargetId = pid;
-        if(isReverse){
-          if(isElim){
-            visualTargetId = pid; // point to eliminated participant
-          } else if(msg.final){
-            // final winner message in reverse: do not spin again
-            skipSpin = true;
-          }
-        }
-
-        const afterSpin = ()=>{
-          // Update lists if someone eliminated in this pick
-          if(isElim){
-            currentActiveIds = currentActiveIds.filter(id=>id!==pid);
-            if(!currentOutIds.includes(pid)) currentOutIds.push(pid);
-            renderParticipants(currentActiveIds, currentOutIds);
-          }
-          if(msg.final){
-            const endAt2 = endAt || new Date().toISOString();
-            timerEl.textContent = `Событие завершено${endAt2? ' ('+ new Date(endAt2).toLocaleString() +')' : ''}`;
-            if(wheel) wheel.style.display = 'none';
-            isFinishedClient = true;
-            // Determine winner
-            let winnerId = pid;
-            if(isReverse){
-              if(isElim){
-                // winner is the only remaining active
-                if(currentActiveIds.length === 1) winnerId = currentActiveIds[0];
-              } else {
-                // if server sends winner as non-eliminated final message, trust it
-                winnerId = pid;
-              }
-            }
-            showWinner(winnerId, endAt2);
-          }
-        };
-
-        if(skipSpin){
-          afterSpin();
-        } else {
-          highlightPick(visualTargetId).then(afterSpin);
-        }
+        // Enqueue and process sequentially
+        pickQueue.push(msg);
+        if(!processingPick){ processNextPick(); }
       }
     }catch(e){ console.error(e); }
   };
