@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Админ: Пользователь — {{ u.username }}</h1>
+<p><a href="/admin/users">← Назад к списку пользователей</a></p>
+<div class="grid two">
+  <section>
+    <h2>События пользователя</h2>
+    {% if events %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Описание</th>
+          <th>Тип</th>
+          <th>Старт</th>
+          <th>Статус</th>
+          <th>Приз</th>
+          <th>Участников</th>
+          <th>Slug</th>
+          <th>Публичная страница</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td>{{ e.id }}</td>
+          <td>{{ e.description }}</td>
+          <td>{{ e.event_type|event_type_label }}</td>
+          <td>{{ to_msk(e.starts_at).strftime('%Y-%m-%d %H:%M') if e.starts_at }}</td>
+          <td>{% if e.finished %}завершено{% elif e.in_progress %}идет{% elif (e.starts_at|to_utc) > now() %}ожидает{% else %}ожидает{% endif %}</td>
+          <td>{{ e.prize.title if e.prize else '' }}</td>
+          <td>{{ (e.participants|length) if e.participants else 0 }}</td>
+          <td>{{ e.slug }}</td>
+          <td>
+            {% if e.slug %}<a href="/event/{{ e.slug }}" target="_blank">Открыть</a>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p>События отсутствуют.</p>
+    {% endif %}
+  </section>
+  <section>
+    <h2>Участники пользователя</h2>
+    {% if participants %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Имя</th>
+          <th>Базовый вес</th>
+          <th>Аватар</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in participants %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.name }}</td>
+          <td>{{ p.default_weight }}</td>
+          <td>
+            {% if p.image_url %}
+              <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+            {% else %}
+              <img src="/static/img/avatar-placeholder.png" alt="no avatar" style="width:40px;height:40px;opacity:.5;">
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p>Участники отсутствуют.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

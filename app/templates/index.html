@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Smith's Randomizer</h1>
+  <p>Создавайте события-рандомайзеры и наблюдайте за выбором победителя в реальном времени.</p>
+  <p><a href="/formulas">Формулы</a></p>
+<!--  <section class="panel">-->
+<!--    <h2>Поиск событий по имени участника</h2>-->
+<!--    <form action="/search" method="get" class="form-inline">-->
+<!--      <input type="text" name="name" placeholder="Имя участника" required>-->
+<!--      <button type="submit">Найти</button>-->
+<!--    </form>-->
+<!--  </section>-->
+  <section class="panel">
+    <h2>Просмотр события по коду (slug)</h2>
+    <form action="/event/" method="get" onsubmit="event.preventDefault(); const slug=this.querySelector('input[name=slug]').value.trim(); if(slug){ window.location.href='/event/'+encodeURIComponent(slug); }">
+      <input type="text" name="slug" placeholder="Код события (slug)" required>
+      <button type="submit">Открыть</button>
+    </form>
+  </section>
+{% endblock %}

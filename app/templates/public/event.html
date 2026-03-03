@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Событие</h1>
+<div class="panel">
+  <p><b>Описание:</b> {{ event.description }}</p>
+  <p><b>Тип:</b> {{ event.event_type|event_type_label }}</p>
+  <p><b>Старт:</b> {{ to_msk(event.starts_at).strftime('%Y-%m-%d %H:%M') if event.starts_at }}</p>
+  <p><b>Slug:</b> {{ event.slug }}</p>
+  {% if event.prize %}
+    <div class="card">
+      <h3>Приз: {{ event.prize.title }}</h3>
+      {% set prize_img = (event.prize.image_url if event.prize else None) or '/static/img/prize-placeholder.png' %}
+      <img src="{{ prize_img }}" alt="" style="max-width:240px">
+    </div>
+  {% endif %}
+</div>
+<div id="timer" data-start="{{ (event.starts_at.replace(tzinfo=None) if event.starts_at.tzinfo else event.starts_at).isoformat() }}Z">Ожидание старта...</div>
+<div id="wheel" data-event-id="{{ event.id }}"></div>
+<div id="winner" class="panel" style="display:none"></div>
+<div class="list">
+  <div class="col">
+    <h3>Участники (активные)</h3>
+    <div id="active" class="card"></div>
+  </div>
+  <div class="col">
+    <h3>Выбывшие</h3>
+    <div id="out" class="card"></div>
+  </div>
+</div>
+<div id="stages" class="panel" style="display:none">
+  <h3>Этапы</h3>
+  <ul id="stages-list"></ul>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/event.js"></script>
+{% endblock %}

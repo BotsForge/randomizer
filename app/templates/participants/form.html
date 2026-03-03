@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{% if participant %}Редактировать участника{% else %}Новый участник{% endif %}</h1>
+{% if error %}
+<div style="color:#b00020; margin:8px 0;">{{ error }}</div>
+{% endif %}
+<form method="post" class="form" enctype="multipart/form-data">
+  <label>Имя <input type="text" name="name" value="{{ participant.name if participant }}" required></label>
+  <label>Вес по умолчанию <input type="number" name="default_weight" min="1" value="{{ participant.default_weight if participant else 1 }}"></label>
+  <div class="panel">
+    <h3>Аватар участника</h3>
+    <p>Вы можете загрузить файл изображения (до 5 МБ). Изображение будет автоматически сжато до максимального размера 100 пикселей для экономии места.</p>
+    <label>Загрузить файл
+      <input type="file" name="image" accept="image/*">
+    </label>
+    <p>Или укажите URL (если нужен внешний хостинг):</p>
+    <label>URL изображения (опционально)
+      <input type="text" name="image_url" value="{{ participant.image_url if participant }}">
+    </label>
+    <div style="margin-top:8px">
+      <img src="{{ (participant.image_url if participant else None) or '/static/img/avatar-placeholder.png' }}" alt="prev" style="max-width:100px; max-height:100px;">
+    </div>
+  </div>
+  <button type="submit">Сохранить</button>
+</form>
+{% endblock %}

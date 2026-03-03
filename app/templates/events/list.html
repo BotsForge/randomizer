@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>События</h1>
+<a href="/events/new" class="btn">+ Новое событие</a>
+<form method="get" class="form-inline">
+  <input type="text" name="q" value="{{ q }}" placeholder="Поиск по описанию и предмету">
+  <button type="submit">Искать</button>
+</form>
+<table class="table">
+  <thead><tr><th>Описание</th><th>Тип</th><th>Старт</th><th>Статус</th><th>Приз</th><th>Участников</th><th>Slug</th><th></th></tr></thead>
+  <tbody>
+  {% for e in events %}
+    <tr>
+      <td>{{ e.description }}</td>
+      <td>{{ e.event_type|event_type_label }}</td>
+      <td>{{ to_msk(e.starts_at).strftime('%Y-%m-%d %H:%M') if e.starts_at }}</td>
+      <td>{% if e.finished %}завершено{% elif e.in_progress %}идет{% elif (e.starts_at|to_utc) > now() %}ожидает{% else %}ожидает{% endif %}</td>
+      <td>{{ e.prize.title if e.prize else '' }}</td>
+      <td>{{ (e.participants|length) if e.participants else 0 }}</td>
+      <td><a href="/event/{{ e.slug }}" target="_blank">{{ e.slug }}</a></td>
+      <td>
+        <a href="/events/{{ e.id }}">Редактировать</a>
+        <form method="post" action="/events/{{ e.id }}/delete" style="display:inline" onsubmit="return confirm('Удалить событие?')">
+          <button type="submit">Удалить</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

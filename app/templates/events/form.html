@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{% if event %}Редактировать событие{% else %}Новое событие{% endif %}</h1>
+<form method="post" class="form" enctype="multipart/form-data" data-eid="{{ event.id if event }}">
+  <div class="panel">
+    <h3>Основное</h3>
+    <label>Описание события
+      <textarea name="description" rows="8" maxlength="1024" required>{{ event.description if event }}</textarea>
+    </label>
+    <label>Slug (код для ссылки)
+      <input type="text" id="slug" name="slug" value="{{ event.slug if event }}" required pattern="^[A-Za-z0-9_-]+$" title="Только латинские буквы, цифры, дефис и подчёркивание">
+      <div id="slug-help" style="font-size:0.9em; color:#666; margin-top:4px"></div>
+    </label>
+    <label>Тип события
+      <select name="event_type">
+        <option value="direct" {% if event and event.event_type=='direct' %}selected{% endif %}>Прямой выбор (1 победитель)</option>
+        <option value="reverse" {% if event and event.event_type=='reverse' %}selected{% endif %}>Обратный (по выбыванию)</option>
+      </select>
+    </label>
+    <div>
+      <label>Дата проведения
+        {% set msk_dt = (event.starts_at if event else None) %}
+        <input type="date" name="starts_date" value="{{ to_msk(msk_dt).strftime('%Y-%m-%d') if msk_dt }}" required>
+      </label>
+      <label>Время проведения
+        <input type="time" name="starts_time" step="60" value="{{ to_msk(msk_dt).strftime('%H:%M') if msk_dt }}" required>
+      </label>
+      <div style="color:#666; font-size:0.9em; margin-top:4px;">Часовой пояс: МСК (UTC+3). Время указывайте МСК.</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Предмет розыгрыша</h3>
+    <label>Название
+      <input type="text" name="prize_title" maxlength="255" value="{{ event.prize.title if event and event.prize }}">
+    </label>
+    <label>URL изображения
+      <input type="text" name="prize_image" value="{{ (event.prize.image_url if event and event.prize) or '' }}">
+    </label>
+    <div style="margin-top:8px">
+      <label>Загрузить изображение (до 5 МБ)
+        <input type="file" name="prize_image_file" accept="image/*">
+      </label>
+      <div style="margin-top:6px">
+        <img src="{{ (event.prize.image_url if event and event.prize else None) or '/static/img/prize-placeholder.png' }}" alt="prize" style="max-width:160px; max-height:160px;">
+      </div>
+      <div style="color:#666; font-size:0.9em;">Будет автоматически сжато до 500 пикселей по большей стороне и оптимизировано по качеству (&lt; 1 МБ).</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Участники</h3>
+    <p>Отметьте участников и при необходимости задайте вес в этом событии (по умолчанию берется вес участника). Лимит 1000.</p>
+    <div class="card">
+      <label><input type="checkbox" id="checkall" onclick="document.querySelectorAll('[name=participant_ids]').forEach(c=>c.checked=this.checked)"> Выбрать всех</label>
+      <div style="max-height:300px; overflow:auto;">
+        <table class="table">
+          <thead><tr><th></th><th>Фото</th><th>Имя</th><th>Вес по умолчанию</th><th>Вес в событии</th></tr></thead>
+          <tbody>
+            {% for p in participants %}
+            {% set link = (event.participants|selectattr('participant_id','equalto', p.id)|first) if event else None %}
+            <tr>
+              <td><input type="checkbox" name="participant_ids" value="{{ p.id }}" {% if link %}checked{% endif %}></td>
+              <td>
+                <img src="{{ p.image_url or '/static/img/avatar-placeholder.png' }}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+              </td>
+              <td>{{ p.name }}</td>
+              <td>{{ p.default_weight }}</td>
+              <td><input type="number" name="weight_{{ p.id }}" min="1" value="{{ link.weight if link and link.weight is not none else (p.default_weight if link else '') }}" style="width:80px"></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <button type="submit">Сохранить</button>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  const slugInput = document.getElementById('slug');
+  const help = document.getElementById('slug-help');
+  const form = slugInput && slugInput.form;
+  if(!slugInput) return;
+  let timer = null;
+  const eid = (form && form.dataset && form.dataset.eid) ? parseInt(form.dataset.eid) : null;
+  const dateInput = document.querySelector('input[name="starts_date"]');
+  const timeInput = document.querySelector('input[name="starts_time"]');
+
+  // Helpers for MSK time (UTC+3)
+  function nowMSK(){
+    const now = new Date();
+    const utcMs = now.getTime() + now.getTimezoneOffset()*60000;
+    return new Date(utcMs + 3*60*60*1000);
+  }
+  function pad(n){ return n<10? '0'+n : ''+n; }
+  function fmtDate(d){ return d.getFullYear()+ '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+  function fmtTime(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  function applyMinDateTime(){
+    if(!dateInput || !timeInput) return;
+    const now = nowMSK();
+    const today = fmtDate(now);
+    dateInput.min = today;
+    if((dateInput.value||'') === today){
+      timeInput.min = fmtTime(now);
+    } else {
+      timeInput.removeAttribute('min');
+    }
+  }
+
+  function setState(ok, msg){
+    help.textContent = msg || (ok? 'Доступно' : 'Занято');
+    help.style.color = ok? '#2e7d32' : '#b00020';
+    if(form){ form.querySelector('button[type=submit]').disabled = !ok; }
+  }
+  function check(){
+    const v = (slugInput.value||'').trim();
+    if(!v){ setState(false, 'Заполните slug'); return; }
+    fetch(`/events/check-slug?slug=${encodeURIComponent(v)}${eid?`&exclude_id=${eid}`:''}`)
+      .then(r=>r.json()).then(d=>{
+        setState(!!d.available);
+      }).catch(()=>{ setState(true, ''); });
+  }
+
+  // Sanitize slug on input to allowed chars only
+  slugInput.addEventListener('input', ()=>{
+    const cleaned = (slugInput.value||'').replace(/[^A-Za-z0-9_-]/g, '');
+    if(cleaned !== slugInput.value){ slugInput.value = cleaned; }
+    clearTimeout(timer); timer=setTimeout(check, 250);
+  });
+
+  // Initial checks
+  applyMinDateTime();
+  if(dateInput){ dateInput.addEventListener('change', applyMinDateTime); }
+
+  // Prevent past datetime on submit (client-side guard; server also validates)
+  if(form){
+    form.addEventListener('submit', (e)=>{
+      if(dateInput && timeInput){
+        const now = nowMSK();
+        const today = fmtDate(now);
+        const curTime = fmtTime(now);
+        const d = (dateInput.value||'');
+        const t = (timeInput.value||'');
+        if(!d || !t){ return; }
+        if(d < today || (d === today && t < curTime)){
+          e.preventDefault();
+          alert('Нельзя указывать прошедшие дату и время (по МСК)');
+          applyMinDateTime();
+          return false;
+        }
+      }
+    });
+  }
+
+  check();
+})();
+</script>
+{% endblock %}

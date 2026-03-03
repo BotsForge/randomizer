@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Поиск событий по участнику</h1>
+<div class="panel">
+  <form method="get" action="/search" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+    <input type="text" name="name" value="{{ name or '' }}" placeholder="Имя участника" style="padding:8px; min-width:240px">
+    <button type="submit">Искать</button>
+  </form>
+</div>
+
+{% if name %}
+  {% if events and events|length > 0 %}
+    <h3>Найденные события для: "{{ name }}"</h3>
+    <ul class="list">
+      {% for ev in events %}
+        <li class="card" style="margin:8px 0; padding:12px">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap">
+            <div>
+              <div><b>{{ ev.description }}</b></div>
+              <div>Тип: {{ ev.event_type|event_type_label }}</div>
+              <div>Старт: {{ to_msk(ev.starts_at).strftime('%Y-%m-%d %H:%M') if ev.starts_at }}</div>
+            </div>
+            <div>
+              <a href="/event/{{ ev.slug }}">Открыть</a>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>События с участником "{{ name }}" не найдены.</p>
+  {% endif %}
+{% else %}
+  <p>Введите имя участника и нажмите «Искать».</p>
+{% endif %}
+{% endblock %}
