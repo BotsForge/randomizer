@@ -11,3 +11,4 @@ aiosqlite
 python-dotenv
 itsdangerous
 Pillow
+loguru

@@ -170,3 +170,14 @@ async def search_by_participant(request: Request, name: str | None = None, sessi
             if ev_ids:
                 events = (await session.exec(select(Event).where(Event.id.in_(ev_ids)))).all()
     return request.app.templates.TemplateResponse("public/search.html", {"request": request, "user": user, "events": events, "name": qname})
+
+
+@router.get("/api/events/slug/{slug}/exists")
+async def event_exists_by_slug(slug: str, session: AsyncSession = Depends(get_session)):
+    res = await session.exec(select(Event.id).where(Event.slug == slug))
+    ev_id = res.first()
+    if not ev_id:
+        return {"exists": False}
+    # res.first() may return a scalar when selecting a single column
+    ev_id_value = ev_id[0] if isinstance(ev_id, tuple) else ev_id
+    return {"exists": True, "id": ev_id_value}

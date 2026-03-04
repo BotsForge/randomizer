@@ -12,9 +12,10 @@
 <!--  </section>-->
   <section class="panel">
     <h2>Просмотр события по коду (slug)</h2>
-    <form action="/event/" method="get" onsubmit="event.preventDefault(); const slug=this.querySelector('input[name=slug]').value.trim(); if(slug){ window.location.href='/event/'+encodeURIComponent(slug); }">
+    <form action="/event/" method="get" onsubmit="event.preventDefault();(async()=>{const form=this;const msgEl=form.querySelector('#slug-msg');msgEl.style.display='none';msgEl.textContent='';const slug=form.querySelector('input[name=slug]').value.trim();if(!slug){return;}const rp=document.body.dataset.rootPath||'';try{const res=await fetch(rp+`/api/events/slug/${encodeURIComponent(slug)}/exists`);if(!res.ok){throw new Error('network');}const data=await res.json();if(data && data.exists){window.location.href=rp+`/event/${encodeURIComponent(slug)}`;}else{msgEl.textContent='Событие с таким кодом не найдено';msgEl.style.display='block';}}catch(e){msgEl.textContent='Не удалось проверить код. Попробуйте ещё раз.';msgEl.style.display='block';}})();">
       <input type="text" name="slug" placeholder="Код события (slug)" required>
       <button type="submit">Открыть</button>
+      <div id="slug-msg" class="alert" style="display:none;margin-top:8px;"></div>
     </form>
   </section>
 {% endblock %}

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 import contextlib
 from pathlib import Path
+import random
 
 from fastapi import FastAPI, Request, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -260,8 +261,10 @@ async def run_event(event_id: int):
             else:
                 # reverse: eliminate someone (using inverse weights => lower weight less likely to be eliminated)
                 # To invert weights, we build weights w' = max_w - w + 1
-                max_w = max(w for _, w in active)
-                inverted = [(pid, max_w - w + 1) for pid, w in active]
+
+                alpha = 0.5
+                sum_w = sum(w for _, w in active)
+                inverted = [(pid, int(sum_w / w ** alpha * 100)) for pid, w in active]
                 pick_id = weighted_pick(inverted)
                 eliminated.append(pick_id)
                 active = [(pid, w) for pid, w in active if pid != pick_id]
@@ -285,7 +288,6 @@ async def run_event(event_id: int):
 
 
 def weighted_pick(population: list[tuple[int, int]]) -> int:
-    import random
     total = sum(max(1, w) for _, w in population)
     r = random.randint(1, total)
     acc = 0
