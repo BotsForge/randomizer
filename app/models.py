@@ -8,6 +8,7 @@ from sqlmodel import SQLModel, Field, Relationship, Column, String
 class EventType(str, Enum):
     direct = "direct"
     reverse = "reverse"
+    reverse_soft = "reverse_soft"
 
 
 class User(SQLModel, table=True):

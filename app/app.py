@@ -98,6 +98,7 @@ def _event_type_label(value: str) -> str:
     mapping = {
         "direct": "Прямой выбор",
         "reverse": "Обратный (по выбыванию)",
+        "reverse_soft": "Обратный сглаженный (по выбыванию)",
     }
     return mapping.get(value, value)
 
@@ -261,8 +262,10 @@ async def run_event(event_id: int):
             else:
                 # reverse: eliminate someone (using inverse weights => lower weight less likely to be eliminated)
                 # To invert weights, we build weights w' = max_w - w + 1
-
-                alpha = 0.5
+                if ev.event_type == EventType.reverse:
+                    alpha = 1
+                else:
+                    alpha = 0.5
                 sum_w = sum(w for _, w in active)
                 inverted = [(pid, int(sum_w / w ** alpha * 100)) for pid, w in active]
                 pick_id = weighted_pick(inverted)
